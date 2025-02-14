@@ -82,8 +82,6 @@
     </div>
 
     <script>
-        const OPENAI_API_KEY = "YOUR_OPENAI_API_KEY";  // Replace with your API key
-
 function sendMessage() {
     const userInput = document.getElementById("user-input").value;
     if (!userInput) return;
@@ -92,7 +90,7 @@ function sendMessage() {
     chatBox.innerHTML += `<div class="user-message">${userInput}</div>`;
     document.getElementById("user-input").value = "";
 
-    fetch("https://your-vercel-app.vercel.app/chat", {  // Change to your backend URL
+    fetch("https://stevechatbot-4ct8.vercel.app/", {  // Change to your backend URL
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ messages: [{ role: "user", content: userInput }] })
