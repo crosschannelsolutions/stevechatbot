@@ -84,38 +84,36 @@
     <script>
         const OPENAI_API_KEY = "YOUR_OPENAI_API_KEY";  // Replace with your API key
 
-        function sendMessage() {
-            const userInput = document.getElementById("user-input").value;
-            if (!userInput) return;
+function sendMessage() {
+    const userInput = document.getElementById("user-input").value;
+    if (!userInput) return;
 
-            const chatBox = document.getElementById("chat-box");
-            const userMessage = `<div class="user-message">${userInput}</div>`;
-            chatBox.innerHTML += userMessage;
-            document.getElementById("user-input").value = "";
+    const chatBox = document.getElementById("chat-box");
+    chatBox.innerHTML += `<div class="user-message">${userInput}</div>`;
+    document.getElementById("user-input").value = "";
 
-            fetch("https://api.openai.com/v1/chat/completions", {
-                method: "POST",
-                headers: {
-                    "Authorization": `Bearer ${OPENAI_API_KEY}`,
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({
-                    model: "gpt-4-turbo",
-                    messages: [{ role: "system", content: "You are a helpful chatbot." }, { role: "user", content: userInput }],
-                    temperature: 0.7
-                })
-            })
-            .then(response => response.json())
-            .then(data => {
-                const botMessage = `<div class="bot-message">${data.choices[0].message.content}</div>`;
-                chatBox.innerHTML += botMessage;
-                chatBox.scrollTop = chatBox.scrollHeight;
-            })
-            .catch(error => {
-                console.error("Error:", error);
-                chatBox.innerHTML += `<div class="bot-message">Sorry, an error occurred.</div>`;
-            });
+    fetch("https://your-vercel-app.vercel.app/chat", {  // Change to your backend URL
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ messages: [{ role: "user", content: userInput }] })
+    })
+    .then(response => response.json())
+    .then(data => {
+        console.log("🛠 API Response:", data);
+        if (data.choices) {
+            const botMessage = `<div class="bot-message">${data.choices[0].message.content}</div>`;
+            chatBox.innerHTML += botMessage;
+        } else {
+            chatBox.innerHTML += `<div class="bot-message">Error: ${JSON.stringify(data)}</div>`;
         }
+        chatBox.scrollTop = chatBox.scrollHeight;
+    })
+    .catch(error => {
+        console.error("❌ Fetch Error:", error);
+        chatBox.innerHTML += `<div class="bot-message">Sorry, an error occurred.</div>`;
+    });
+}
+
     </script>
 </body>
 </html>
