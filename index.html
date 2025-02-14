@@ -90,20 +90,22 @@ function sendMessage() {
     chatBox.innerHTML += `<div class="user-message">${userInput}</div>`;
     document.getElementById("user-input").value = "";
 
-    fetch("https://stevechatbot.vercel.app/", {  // Change to your backend URL
-        method: "POST",
+    fetch("https://stevechatbot.vercel.app/api/chat", {  // ✅ Ensure this is correct
+        method: "POST",  // ✅ Use POST instead of GET
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ messages: [{ role: "user", content: userInput }] })
     })
     .then(response => response.json())
     .then(data => {
         console.log("🛠 API Response:", data);
-        if (data.choices) {
+        
+        if (data.choices && data.choices.length > 0) {
             const botMessage = `<div class="bot-message">${data.choices[0].message.content}</div>`;
             chatBox.innerHTML += botMessage;
         } else {
-            chatBox.innerHTML += `<div class="bot-message">Error: ${JSON.stringify(data)}</div>`;
+            chatBox.innerHTML += `<div class="bot-message">Error: No response from AI</div>`;
         }
+
         chatBox.scrollTop = chatBox.scrollHeight;
     })
     .catch(error => {
@@ -111,7 +113,6 @@ function sendMessage() {
         chatBox.innerHTML += `<div class="bot-message">Sorry, an error occurred.</div>`;
     });
 }
-
     </script>
 </body>
 </html>
