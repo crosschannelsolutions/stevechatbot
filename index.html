@@ -90,7 +90,7 @@ function sendMessage() {
     chatBox.innerHTML += `<div class="user-message">${userInput}</div>`;
     document.getElementById("user-input").value = "";
 
-    fetch("https://stevechatbot-4ct8.vercel.app/", {  // Change to your backend URL
+    fetch("https://stevechatbot.vercel.app/", {  // Change to your backend URL
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ messages: [{ role: "user", content: userInput }] })
