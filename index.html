@@ -108,13 +108,21 @@ async function sendMessage() {
         const reader = response.body.getReader();
         const decoder = new TextDecoder();
         let botMessage = "";
+        let lastText = ""; // ✅ Keeps track of previously received text
 
         while (true) {
             const { done, value } = await reader.read();
             if (done) break;
 
             let newText = decoder.decode(value);
-            botMessage += newText;
+            newText = newText.replace(/\*\*(.*?)\*\*/g, "$1"); // ✅ Remove **bold** text
+            newText = newText.replace(/\*(.*?)\*/g, "$1"); // ✅ Remove *italic* text
+
+            // ✅ Only add the new part of the text, not the repeated buffer
+            let cleanText = newText.replace(lastText, "").trim();
+            lastText = newText; // ✅ Update last received text
+
+            botMessage += cleanText;
             botMessageDiv.innerHTML = botMessage;
         }
 
@@ -125,6 +133,7 @@ async function sendMessage() {
         botMessageDiv.innerHTML = "Sorry, an error occurred.";
     }
 }
+
 
 
 
