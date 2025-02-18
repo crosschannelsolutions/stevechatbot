@@ -16,7 +16,7 @@ export default async function handler(req, res) {
             model: "gpt-4-turbo",
             messages: req.body.messages,
             temperature: 0.7,
-            stream: true // ✅ Enable streaming response
+            stream: true
         }, {
             headers: { "Authorization": `Bearer ${process.env.OPENAI_API_KEY}` },
             responseType: "stream"
@@ -38,8 +38,7 @@ export default async function handler(req, res) {
                     try {
                         const json = JSON.parse(part.replace("data: ", ""));
                         if (json.choices && json.choices[0].delta && json.choices[0].delta.content) {
-                            const newText = json.choices[0].delta.content;
-                            res.write(`data: ${JSON.stringify({ text: newText })}\n\n`);  // ✅ Send only the new text chunk
+                            res.write(json.choices[0].delta.content);  // ✅ Send only raw text
                         }
                     } catch (e) {
                         console.error("Error parsing JSON chunk:", e);
@@ -52,9 +51,6 @@ export default async function handler(req, res) {
 
     } catch (error) {
         console.error("❌ OpenAI API Error:", error);
-        res.status(500).json({ 
-            error: "Failed to fetch OpenAI response", 
-            details: error.message 
-        });
+        res.status(500).json({ error: "Failed to fetch OpenAI response", details: error.message });
     }
 }
