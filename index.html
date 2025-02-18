@@ -1,3 +1,7 @@
+</div>
+
+<script>
+function sendMessage() {
 async function sendMessage() {
     const userInput = document.getElementById("user-input").value;
     if (!userInput) return;
@@ -33,3 +37,26 @@ async function sendMessage() {
 
     chatBox.scrollTop = chatBox.scrollHeight;
 }
+)
+    .catch(error => {
+        console.error("❌ Fetch Error:", error);
+        chatBox.innerHTML += `<div class="bot-message">Sorry, an error occurred.</div>`;
+});
+
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+    let botMessage = "";
+
+    while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        botMessage += decoder.decode(value);
+        botMessageDiv.innerHTML = botMessage; // ✅ Update UI in real-time
+    }
+
+    chatBox.scrollTop = chatBox.scrollHeight;
+}
+
+</script>
+</body>
+</html>
