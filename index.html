@@ -178,13 +178,13 @@ async function sendMessage() {
         if (data.choices && data.choices.length > 0) {
             let botText = data.choices[0].message.content;
 
-            // ✅ Convert Markdown-style links [text](URL) into <a> tags
+            // ✅ Fix broken links by ensuring proper closing of tags
             botText = botText.replace(/\[(.*?)\]\((https?:\/\/[^\s]+)\)/g, '<a href="$2" target="_blank">$1</a>');
 
-            // ✅ Convert plain text URLs into clickable links
-            botText = botText.replace(/(https?:\/\/[^\s]+)/g, '<a href="$1" target="_blank">$1</a>');
+            // ✅ Fix any improperly formatted plain text links and make them clickable
+            botText = botText.replace(/(https?:\/\/[^\s]+)(?![^<>]*>)/g, '<a href="$1" target="_blank">$1</a>');
 
-            // ✅ Convert Markdown formatting
+            // ✅ Convert Markdown formatting (bold, italics, lists, etc.)
             botText = botText
                 .replace(/\*\*(.*?)\*\*/g, "<b>$1</b>") // Bold
                 .replace(/\*(.*?)\*/g, "<i>$1</i>") // Italics
