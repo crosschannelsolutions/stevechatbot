@@ -16,7 +16,7 @@ export default async function handler(req, res) {
             model: "gpt-4-turbo",
             messages: req.body.messages,
             temperature: 0.7,
-            stream: true
+            stream: true // ✅ Enable streaming response
         }, {
             headers: { "Authorization": `Bearer ${process.env.OPENAI_API_KEY}` },
             responseType: "stream"
@@ -39,7 +39,7 @@ export default async function handler(req, res) {
                         const json = JSON.parse(part.replace("data: ", ""));
                         if (json.choices && json.choices[0].delta && json.choices[0].delta.content) {
                             const newText = json.choices[0].delta.content;
-                            res.write(newText);  // ✅ Send only new words
+                            res.write(`data: ${JSON.stringify({ text: newText })}\n\n`);  // ✅ Send only the new text chunk
                         }
                     } catch (e) {
                         console.error("Error parsing JSON chunk:", e);
