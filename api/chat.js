@@ -14,10 +14,7 @@ export default async function handler(req, res) {
     try {
         const response = await axios.post("https://api.openai.com/v1/chat/completions", {
             model: "gpt-4-turbo",
-            messages: [
-                { role: "system", content: "You are an AI chatbot. Please respond in plain text only. Do not use Markdown, bold, italics, or special formatting." },
-                ...req.body.messages
-            ],
+            messages: req.body.messages,
             temperature: 0.7,
             stream: true  // ✅ Enables streaming
         }, {
@@ -30,7 +27,6 @@ export default async function handler(req, res) {
         res.setHeader("Connection", "keep-alive");
 
         const stream = response.data;
-        const encoder = new TextEncoder();
         let buffer = "";
 
         stream.on("data", (chunk) => {
@@ -42,10 +38,8 @@ export default async function handler(req, res) {
                     try {
                         const json = JSON.parse(part.replace("data: ", ""));
                         if (json.choices && json.choices[0].delta && json.choices[0].delta.content) {
-                            let newText = json.choices[0].delta.content;
-                            newText = newText.replace(/\*\*(.*?)\*\*/g, "$1"); // ✅ Remove bold Markdown (**text**)
-                            newText = newText.replace(/\*(.*?)\*/g, "$1"); // ✅ Remove italic Markdown (*text*)
-                            res.write(encoder.encode(newText));
+                            const newText = json.choices[0].delta.content;
+                            res.write(`data: ${newText}\n\n`);  // ✅ Send only the new text
                         }
                     } catch (e) {
                         console.error("Error parsing JSON chunk:", e);
