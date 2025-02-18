@@ -154,50 +154,55 @@ document.getElementById("chat-button").addEventListener("click", function() {
             }
         });
 
-        async function sendMessage() {
-            const userInput = document.getElementById("user-input").value.trim();
-            if (!userInput) return;
+async function sendMessage() {
+    const userInput = document.getElementById("user-input").value.trim();
+    if (!userInput) return;
 
-            const chatBox = document.getElementById("chat-box");
-            chatBox.innerHTML += `<div class="user-message">${userInput}</div>`;
-            document.getElementById("user-input").value = "";
+    const chatBox = document.getElementById("chat-box");
+    chatBox.innerHTML += `<div class="user-message">${userInput}</div>`;
+    document.getElementById("user-input").value = "";
 
-            const botMessageDiv = document.createElement("div");
-            botMessageDiv.className = "bot-message";
-            chatBox.appendChild(botMessageDiv);
+    const botMessageDiv = document.createElement("div");
+    botMessageDiv.className = "bot-message";
+    chatBox.appendChild(botMessageDiv);
 
-            try {
-                const response = await fetch("https://stevechatbot.vercel.app/api/chat", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ messages: [{ role: "user", content: userInput }] })
-                });
+    try {
+        const response = await fetch("https://stevechatbot.vercel.app/api/chat", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ messages: [{ role: "user", content: userInput }] })
+        });
 
-                const data = await response.json();
+        const data = await response.json();
 
-                if (data.choices && data.choices.length > 0) {
-                    let botText = data.choices[0].message.content;
+        if (data.choices && data.choices.length > 0) {
+            let botText = data.choices[0].message.content;
 
-                    // ✅ Convert Markdown to HTML Formatting
-                    botText = botText
-                        .replace(/\*\*(.*?)\*\*/g, "<b>$1</b>") // Bold
-                        .replace(/\*(.*?)\*/g, "<i>$1</i>") // Italics
-                        .replace(/\n/g, "<br>") // Line breaks
-                        .replace(/(\d+)\.\s/g, "<br><b>$1.</b> ") // Numbered lists
-                        .replace(/- (.*?)/g, "<br>• $1") // Bullet points
-                        .replace(/\[(.*?)\]\((https?:\/\/[^\s]+)\)/g, '<a href="$2" target="_blank">$1</a>'); // ✅ Convert [text](URL) into a clickable link
+            // ✅ Convert Markdown-style links [text](URL) into <a> tags
+            botText = botText.replace(/\[(.*?)\]\((https?:\/\/[^\s]+)\)/g, '<a href="$2" target="_blank">$1</a>');
 
-                    botMessageDiv.innerHTML = botText;
-                } else {
-                    botMessageDiv.innerHTML = "Error: No response from AI.";
-                }
+            // ✅ Convert plain text URLs into clickable links
+            botText = botText.replace(/(https?:\/\/[^\s]+)/g, '<a href="$1" target="_blank">$1</a>');
 
-                chatBox.scrollTop = chatBox.scrollHeight;
-            } catch (error) {
-                console.error("❌ Fetch Error:", error);
-                botMessageDiv.innerHTML = "Sorry, an error occurred.";
-            }
+            // ✅ Convert Markdown formatting
+            botText = botText
+                .replace(/\*\*(.*?)\*\*/g, "<b>$1</b>") // Bold
+                .replace(/\*(.*?)\*/g, "<i>$1</i>") // Italics
+                .replace(/\n/g, "<br>") // Line breaks
+                .replace(/(\d+)\.\s/g, "<br><b>$1.</b> ") // Numbered lists
+                .replace(/- (.*?)/g, "<br>• $1"); // Bullet points
+
+            botMessageDiv.innerHTML = botText;
+        } else {
+            botMessageDiv.innerHTML = "Error: No response from AI.";
         }
+
+        chatBox.scrollTop = chatBox.scrollHeight;
+    } catch (error) {
+        console.error("❌ Fetch Error:", error);
+        botMessageDiv.innerHTML = "Sorry, an error occurred.";
+    }
+}
     </script>
 </body>
 </html>
