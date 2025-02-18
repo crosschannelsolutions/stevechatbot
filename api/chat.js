@@ -1,52 +1,44 @@
-import { OpenAI } from "openai";
-import { NextResponse } from "next/server";
+import axios from "axios";
 
-export const config = {
-  runtime: "edge", // ✅ Use Edge functions (Vercel supports streaming here)
-};
-
-export default async function handler(req) {
+export default async function handler(req, res) {
     if (req.method !== "POST") {
-        return NextResponse.json({ error: "Method Not Allowed" }, { status: 405 });
+        res.status(405).json({ error: "Method Not Allowed" });
+        return;
     }
 
-    const openai = new OpenAI({
-        apiKey: process.env.OPENAI_API_KEY, // Ensure this is set in Vercel
-    });
+    if (!process.env.OPENAI_API_KEY) {
+        res.status(500).json({ error: "OpenAI API Key is missing" });
+        return;
+    }
 
     try {
-        const completion = await openai.chat.completions.create({
+        const response = await axios.post("https://api.openai.com/v1/chat/completions", {
             model: "gpt-4-turbo",
-            messages: [
-                { role: "system", content: "You are a helpful assistant. Generate responses in a conversational manner." },
-                ...req.body.messages
-            ],
+            messages: req.body.messages,
             temperature: 0.7,
-            stream: true,  // ✅ Enables streaming
+            stream: true  // ✅ Enable streaming
+        }, {
+            headers: { "Authorization": `Bearer ${process.env.OPENAI_API_KEY}` },
+            responseType: "stream"
         });
 
-        const { readable, writable } = new TransformStream();
-        const writer = writable.getWriter();
-        const encoder = new TextEncoder();
+        res.setHeader("Content-Type", "text/event-stream");
+        res.setHeader("Cache-Control", "no-cache");
+        res.setHeader("Connection", "keep-alive");
 
-        (async () => {
-            for await (const chunk of completion) {
-                await writer.write(encoder.encode(chunk.choices[0]?.delta?.content || ""));
-            }
-            writer.close();
-        })();
+        response.data.on("data", (chunk) => {
+            res.write(chunk.toString());
+        });
 
-        return new Response(readable, {
-            headers: {
-                "Content-Type": "text/plain",
-            },
+        response.data.on("end", () => {
+            res.end();
         });
 
     } catch (error) {
         console.error("❌ OpenAI API Error:", error);
-        return NextResponse.json({ 
+        res.status(500).json({ 
             error: "Failed to fetch OpenAI response", 
             details: error.message 
-        }, { status: 500 });
+        });
     }
 }
