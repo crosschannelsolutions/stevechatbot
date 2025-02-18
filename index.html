@@ -82,7 +82,7 @@
     </div>
 
     <script>
-function sendMessage() {
+async function sendMessage() {
     const userInput = document.getElementById("user-input").value;
     if (!userInput) return;
 
@@ -90,29 +90,30 @@ function sendMessage() {
     chatBox.innerHTML += `<div class="user-message">${userInput}</div>`;
     document.getElementById("user-input").value = "";
 
-    fetch("https://stevechatbot.vercel.app/api/chat", {  // ✅ Ensure this is correct
-        method: "POST",  // ✅ Use POST instead of GET
+    const botMessageDiv = document.createElement("div");
+    botMessageDiv.className = "bot-message";
+    chatBox.appendChild(botMessageDiv);
+
+    const response = await fetch("https://stevechatbot.vercel.app/api/chat", {
+        method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ messages: [{ role: "user", content: userInput }] })
-    })
-    .then(response => response.json())
-    .then(data => {
-        console.log("🛠 API Response:", data);
-        
-        if (data.choices && data.choices.length > 0) {
-            const botMessage = `<div class="bot-message">${data.choices[0].message.content}</div>`;
-            chatBox.innerHTML += botMessage;
-        } else {
-            chatBox.innerHTML += `<div class="bot-message">Error: No response from AI</div>`;
-        }
-
-        chatBox.scrollTop = chatBox.scrollHeight;
-    })
-    .catch(error => {
-        console.error("❌ Fetch Error:", error);
-        chatBox.innerHTML += `<div class="bot-message">Sorry, an error occurred.</div>`;
     });
+
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+    let botMessage = "";
+
+    while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        botMessage += decoder.decode(value);
+        botMessageDiv.innerHTML = botMessage; // ✅ Update UI in real-time
+    }
+
+    chatBox.scrollTop = chatBox.scrollHeight;
 }
+
     </script>
 </body>
 </html>
