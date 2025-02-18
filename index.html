@@ -132,9 +132,17 @@
 
     <script>
         // Toggle Chat Popup
-        document.getElementById("chat-button").addEventListener("click", function() {
-            document.getElementById("chat-container").style.display = "flex";
-        });
+document.getElementById("chat-button").addEventListener("click", function() {
+    const chatContainer = document.getElementById("chat-container");
+
+    // Toggle visibility
+    if (chatContainer.style.display === "flex") {
+        chatContainer.style.display = "none"; // Hide if open
+    } else {
+        chatContainer.style.display = "flex"; // Show if hidden
+    }
+});
+
 
         document.getElementById("close-chat").addEventListener("click", function() {
             document.getElementById("chat-container").style.display = "none";
