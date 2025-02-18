@@ -39,7 +39,7 @@ export default async function handler(req, res) {
                         const json = JSON.parse(part.replace("data: ", ""));
                         if (json.choices && json.choices[0].delta && json.choices[0].delta.content) {
                             const newText = json.choices[0].delta.content;
-                            res.write(`data: ${newText}\n\n`);  // ✅ Send only the new text
+                            res.write(newText);  // ✅ Send only the raw text (no data: prefix)
                         }
                     } catch (e) {
                         console.error("Error parsing JSON chunk:", e);
