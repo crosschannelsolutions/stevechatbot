@@ -1,23 +1,52 @@
-import axios from 'axios';
+import { OpenAI } from "openai";
+import { NextResponse } from "next/server";
 
-export default async function handler(req, res) {
+export const config = {
+  runtime: "edge", // ✅ Use Edge functions (Vercel supports streaming here)
+};
+
+export default async function handler(req) {
     if (req.method !== "POST") {
-        return res.status(405).json({ error: "Method Not Allowed" });
+        return NextResponse.json({ error: "Method Not Allowed" }, { status: 405 });
     }
 
-    const OPENAI_API_KEY = process.env.OPENAI_API_KEY; // Read API Key from Vercel
+    const openai = new OpenAI({
+        apiKey: process.env.OPENAI_API_KEY, // Ensure this is set in Vercel
+    });
 
     try {
-        const response = await axios.post("https://api.openai.com/v1/chat/completions", {
+        const completion = await openai.chat.completions.create({
             model: "gpt-4-turbo",
-            messages: req.body.messages,
-            temperature: 0.7
-        }, {
-            headers: { "Authorization": `Bearer ${OPENAI_API_KEY}` }
+            messages: [
+                { role: "system", content: "You are a helpful assistant. Generate responses in a conversational manner." },
+                ...req.body.messages
+            ],
+            temperature: 0.7,
+            stream: true,  // ✅ Enables streaming
         });
 
-        res.status(200).json(response.data);
+        const { readable, writable } = new TransformStream();
+        const writer = writable.getWriter();
+        const encoder = new TextEncoder();
+
+        (async () => {
+            for await (const chunk of completion) {
+                await writer.write(encoder.encode(chunk.choices[0]?.delta?.content || ""));
+            }
+            writer.close();
+        })();
+
+        return new Response(readable, {
+            headers: {
+                "Content-Type": "text/plain",
+            },
+        });
+
     } catch (error) {
-        res.status(500).json({ error: "Failed to fetch OpenAI response", details: error.message });
+        console.error("❌ OpenAI API Error:", error);
+        return NextResponse.json({ 
+            error: "Failed to fetch OpenAI response", 
+            details: error.message 
+        }, { status: 500 });
     }
 }
