@@ -1,91 +1,3 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Chatbot</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background: #f9f9f9;
-            margin: 0;
-            padding: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-        }
-        #chat-container {
-            width: 100%;
-            max-width: 400px;
-            height: 500px;
-            border-radius: 10px;
-            background: #fff;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-        }
-        #chat-box {
-            flex: 1;
-            overflow-y: auto;
-            padding: 10px;
-        }
-        #input-container {
-            display: flex;
-            padding: 10px;
-            border-top: 1px solid #ddd;
-        }
-        input {
-            flex: 1;
-            padding: 10px;
-            border: none;
-            outline: none;
-            border-radius: 5px;
-            font-size: 16px;
-        }
-        button {
-            margin-left: 5px;
-            padding: 10px;
-            border: none;
-            background: #007bff;
-            color: white;
-            cursor: pointer;
-            font-size: 16px;
-            border-radius: 5px;
-        }
-        .user-message {
-            text-align: right;
-            background: #007bff;
-            color: white;
-            padding: 8px;
-            border-radius: 10px;
-            margin: 5px 0;
-            max-width: 80%;
-            align-self: flex-end;
-        }
-        .bot-message {
-            text-align: left;
-            background: #eee;
-            padding: 8px;
-            border-radius: 10px;
-            margin: 5px 0;
-            max-width: 80%;
-            align-self: flex-start;
-        }
-    </style>
-</head>
-<body>
-
-    <div id="chat-container">
-        <div id="chat-box"></div>
-        <div id="input-container">
-            <input type="text" id="user-input" placeholder="Type a message..." onkeypress="handleKeyPress(event)">
-            <button onclick="sendMessage()">Send</button>
-        </div>
-    </div>
-
-    <script>
 async function sendMessage() {
     const userInput = document.getElementById("user-input").value.trim();
     if (!userInput) return;
@@ -108,41 +20,28 @@ async function sendMessage() {
         const reader = response.body.getReader();
         const decoder = new TextDecoder();
         let botMessage = "";
-        let lastText = ""; // ✅ Keeps track of previously received text
 
         while (true) {
             const { done, value } = await reader.read();
             if (done) break;
 
             let newText = decoder.decode(value);
-            newText = newText.replace(/\*\*(.*?)\*\*/g, "$1"); // ✅ Remove **bold** text
-            newText = newText.replace(/\*(.*?)\*/g, "$1"); // ✅ Remove *italic* text
+            newText = newText.split("\n").filter(line => line.startsWith("data:")).map(line => {
+                try {
+                    return JSON.parse(line.replace("data: ", "")).text;
+                } catch {
+                    return "";
+                }
+            }).join("");
 
-            // ✅ Only add the new part of the text, not the repeated buffer
-            let cleanText = newText.replace(lastText, "").trim();
-            lastText = newText; // ✅ Update last received text
+            botMessage += newText;
+            botMessageDiv.innerHTML = botMessage; // ✅ Append only the new text
 
-            botMessage += cleanText;
-            botMessageDiv.innerHTML = botMessage;
+            chatBox.scrollTop = chatBox.scrollHeight;
         }
-
-        chatBox.scrollTop = chatBox.scrollHeight;
 
     } catch (error) {
         console.error("❌ Fetch Error:", error);
         botMessageDiv.innerHTML = "Sorry, an error occurred.";
     }
 }
-
-
-
-
-        function handleKeyPress(event) {
-            if (event.key === "Enter") {
-                sendMessage();
-            }
-        }
-    </script>
-
-</body>
-</html>
