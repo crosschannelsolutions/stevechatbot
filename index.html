@@ -123,6 +123,9 @@ async function sendMessage() {
                 .replace(/(\d+)\.\s/g, "<br><b>$1.</b> ") // Numbered lists
                 .replace(/- (.*?)/g, "<br>• $1"); // Bullet points
 
+            // ✅ Convert URLs into Clickable Links
+            botText = botText.replace(/(https?:\/\/[^\s]+)/g, '<a href="$1" target="_blank">$1</a>');
+
             botMessageDiv.innerHTML = botText;
         } else {
             botMessageDiv.innerHTML = "Error: No response from AI.";
@@ -134,6 +137,7 @@ async function sendMessage() {
         botMessageDiv.innerHTML = "Sorry, an error occurred.";
     }
 }
+
 
     </script>
 </body>
