@@ -121,10 +121,8 @@ async function sendMessage() {
                 .replace(/\*(.*?)\*/g, "<i>$1</i>") // Italics
                 .replace(/\n/g, "<br>") // Line breaks
                 .replace(/(\d+)\.\s/g, "<br><b>$1.</b> ") // Numbered lists
-                .replace(/- (.*?)/g, "<br>• $1"); // Bullet points
-
-            // ✅ Convert URLs into Clickable Links
-            botText = botText.replace(/(https?:\/\/[^\s]+)/g, '<a href="$1" target="_blank">$1</a>');
+                .replace(/- (.*?)/g, "<br>• $1") // Bullet points
+                .replace(/\[(.*?)\]\((https?:\/\/[^\s]+)\)/g, '<a href="$2" target="_blank">$1</a>'); // ✅ Convert [text](URL) into a clickable link
 
             botMessageDiv.innerHTML = botText;
         } else {
@@ -137,6 +135,7 @@ async function sendMessage() {
         botMessageDiv.innerHTML = "Sorry, an error occurred.";
     }
 }
+
 
 
     </script>
